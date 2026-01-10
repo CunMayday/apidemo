@@ -1,13 +1,1137 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>apidemo</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="API Demo - Test OpenAI and Google Gemini models with single prompts or batch processing">
+    <title>API Demo - OpenAI & Gemini Showcase</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --purdue-black: #000000;
+            --purdue-campusGold: #CFB991;
+            --purdue-athleticGold: #B1810B;
+            --purdue-darkGray: #3B3B3B;
+            --purdue-gray: #6B6B6B;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #f9fafb;
+            color: var(--purdue-darkGray);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--purdue-black);
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-bottom: 4px solid var(--purdue-campusGold);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-badge {
+            background-color: var(--purdue-campusGold);
+            color: var(--purdue-black);
+            font-weight: 700;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.025em;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem;
+            flex-grow: 1;
+            width: 100%;
+        }
+
+        /* Model Selector */
+        .model-selector {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid rgba(107, 107, 107, 0.2);
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.flex-grow {
+            flex-grow: 1;
+        }
+
+        label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--purdue-darkGray);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        select, input[type="password"], input[type="text"], textarea {
+            background-color: rgba(107, 107, 107, 0.1);
+            border: 1px solid rgba(107, 107, 107, 0.3);
+            border-radius: 4px;
+            padding: 0.5rem 0.75rem;
+            color: var(--purdue-black);
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--purdue-campusGold);
+        }
+
+        select {
+            min-width: 150px;
+            cursor: pointer;
+        }
+
+        .api-key-input {
+            min-width: 300px;
+            width: 100%;
+        }
+
+        /* Tabs */
+        .tab-nav {
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(107, 107, 107, 0.3);
+            display: flex;
+            gap: 2rem;
+        }
+
+        .tab-btn {
+            padding-bottom: 0.75rem;
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: var(--purdue-gray);
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: var(--purdue-athleticGold);
+        }
+
+        .tab-btn.active {
+            color: var(--purdue-black);
+            border-bottom-color: var(--purdue-campusGold);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid rgba(107, 107, 107, 0.2);
+            padding: 1.5rem;
+            min-height: 500px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        /* Single Prompt Tab */
+        textarea.prompt-input {
+            width: 100%;
+            height: 8rem;
+            resize: none;
+            margin-bottom: 1rem;
+            background-color: #f9fafb;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            font-size: 0.875rem;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: var(--purdue-black);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background-color: var(--purdue-darkGray);
+        }
+
+        .btn-gold {
+            background-color: var(--purdue-campusGold);
+            color: var(--purdue-black);
+        }
+
+        .btn-gold:hover:not(:disabled) {
+            background-color: #d4c49a;
+        }
+
+        .btn svg {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.5rem;
+        }
+
+        /* Error Box */
+        .error-box {
+            padding: 1rem;
+            background-color: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            border-radius: 4px;
+            margin-top: 1rem;
+        }
+
+        /* Response Section */
+        .response-section {
+            margin-top: 2rem;
+        }
+
+        .response-header {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--purdue-campusGold);
+            margin-bottom: 0.75rem;
+            border-bottom: 1px solid rgba(107, 107, 107, 0.2);
+            padding-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .usage-stats {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: var(--purdue-gray);
+            text-align: right;
+        }
+
+        .usage-stats .cost {
+            font-weight: 700;
+            color: var(--purdue-darkGray);
+            margin-top: 0.25rem;
+        }
+
+        .response-content {
+            background-color: rgba(107, 107, 107, 0.1);
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid rgba(107, 107, 107, 0.2);
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+
+        /* Batch Tab */
+        .batch-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 1024px) {
+            .batch-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .batch-prompt {
+            height: 6rem;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            border: 2px dashed rgba(107, 107, 107, 0.4);
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            background-color: #f9fafb;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 1rem;
+        }
+
+        .drop-zone:hover, .drop-zone.drag-over {
+            background-color: rgba(107, 107, 107, 0.05);
+            border-color: var(--purdue-campusGold);
+        }
+
+        .drop-zone svg {
+            width: 2.5rem;
+            height: 2.5rem;
+            color: var(--purdue-gray);
+            margin-bottom: 0.75rem;
+        }
+
+        .drop-zone p {
+            color: var(--purdue-darkGray);
+            font-weight: 500;
+        }
+
+        .drop-zone .hint {
+            font-size: 0.75rem;
+            color: var(--purdue-gray);
+            margin-top: 0.25rem;
+        }
+
+        .browse-link {
+            display: inline-block;
+            margin-top: 1rem;
+            color: var(--purdue-campusGold);
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .browse-link:hover {
+            text-decoration: underline;
+        }
+
+        /* File List */
+        .file-list {
+            margin-top: 1rem;
+        }
+
+        .file-list-header {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--purdue-gray);
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-list-items {
+            max-height: 10rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 0.5rem;
+            border: 1px solid rgba(107, 107, 107, 0.2);
+            border-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            font-size: 0.875rem;
+        }
+
+        .file-item-name {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            overflow: hidden;
+        }
+
+        .file-item-name svg {
+            width: 1rem;
+            height: 1rem;
+            color: var(--purdue-campusGold);
+            flex-shrink: 0;
+        }
+
+        .file-item-name span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 200px;
+        }
+
+        .file-remove {
+            background: none;
+            border: none;
+            color: var(--purdue-gray);
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        .file-remove:hover {
+            color: #dc2626;
+        }
+
+        .file-remove svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        /* Results Panel */
+        .results-panel {
+            background-color: rgba(107, 107, 107, 0.05);
+            border-radius: 8px;
+            border: 1px solid rgba(107, 107, 107, 0.2);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .results-header {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--purdue-darkGray);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .results-count {
+            font-size: 0.75rem;
+            background-color: var(--purdue-black);
+            color: white;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            margin-left: 0.5rem;
+        }
+
+        .total-cost {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--purdue-campusGold);
+        }
+
+        .results-list {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .results-empty {
+            text-align: center;
+            color: var(--purdue-gray);
+            padding: 2.5rem 0;
+            font-style: italic;
+        }
+
+        .result-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 4px;
+            border: 1px solid rgba(107, 107, 107, 0.1);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .result-filename {
+            font-weight: 700;
+            font-size: 0.875rem;
+            color: var(--purdue-black);
+        }
+
+        .result-status {
+            display: flex;
+            align-items: center;
+        }
+
+        .result-status svg {
+            width: 1rem;
+            height: 1rem;
+        }
+
+        .result-status.success svg {
+            color: #16a34a;
+        }
+
+        .result-status.error {
+            color: #dc2626;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .result-response {
+            font-size: 0.875rem;
+            color: #374151;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            background-color: #f9fafb;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .result-cost {
+            margin-top: 0.5rem;
+            text-align: right;
+            font-size: 0.75rem;
+            color: var(--purdue-gray);
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid currentColor;
+            border-right-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .spinner-sm {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-width: 1.5px;
+            color: var(--purdue-campusGold);
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--purdue-darkGray);
+            color: rgba(255, 255, 255, 0.8);
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.875rem;
+        }
+
+        /* Hidden file input */
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <div class="logo-badge">API Demo</div>
+            <h1>OpenAI & Gemini Showcase</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Model Selector -->
+        <div class="model-selector">
+            <div class="form-group">
+                <label for="provider">Provider</label>
+                <select id="provider">
+                    <option value="openai">OpenAI</option>
+                    <option value="gemini">Google Gemini</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="model">Model</label>
+                <select id="model"></select>
+            </div>
+
+            <div class="form-group flex-grow">
+                <label id="apiKeyLabel" for="apiKey">OpenAI API Key</label>
+                <input type="password" id="apiKey" class="api-key-input" placeholder="Enter your OpenAI API Key">
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-nav">
+            <button class="tab-btn active" data-tab="single">Single Prompt</button>
+            <button class="tab-btn" data-tab="batch">Batch Processing (File Drop)</button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            <!-- Single Prompt Tab -->
+            <div id="single-tab" class="tab-pane active">
+                <div class="form-group">
+                    <label for="singlePrompt">Enter Your Prompt</label>
+                    <textarea id="singlePrompt" class="prompt-input" placeholder="Ask the model something..."></textarea>
+                </div>
+
+                <button id="singleSubmit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                    </svg>
+                    Submit Prompt
+                </button>
+
+                <div id="singleError" class="error-box hidden"></div>
+
+                <div id="singleResponse" class="response-section hidden">
+                    <div class="response-header">
+                        <span>Response</span>
+                        <div class="usage-stats">
+                            <span id="singleInputTokens"></span>
+                            <span id="singleOutputTokens"></span>
+                            <div class="cost" id="singleCost"></div>
+                        </div>
+                    </div>
+                    <div id="singleResponseText" class="response-content"></div>
+                </div>
+            </div>
+
+            <!-- Batch Processing Tab -->
+            <div id="batch-tab" class="tab-pane">
+                <div class="batch-grid">
+                    <!-- Left Column: Inputs -->
+                    <div>
+                        <div class="form-group">
+                            <label for="batchPrompt">Base Prompt</label>
+                            <textarea id="batchPrompt" class="prompt-input batch-prompt" placeholder="e.g. Summarize this document..."></textarea>
+                        </div>
+
+                        <!-- Drop Zone -->
+                        <div id="dropZone" class="drop-zone">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                            </svg>
+                            <p>Drag & Drop text files here</p>
+                            <p class="hint">(.txt or .md files supported)</p>
+                            <span class="browse-link" id="browseLink">or Browse Files</span>
+                        </div>
+                        <input type="file" id="fileInput" class="hidden" multiple accept=".txt,.md">
+
+                        <!-- File List -->
+                        <div id="fileList" class="file-list hidden">
+                            <div class="file-list-header">Selected Files (<span id="fileCount">0</span>)</div>
+                            <div id="fileListItems" class="file-list-items"></div>
+                        </div>
+
+                        <button id="batchSubmit" class="btn btn-gold" style="width: 100%; margin-top: 1rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            Start Processing
+                        </button>
+                    </div>
+
+                    <!-- Right Column: Results -->
+                    <div class="results-panel">
+                        <div class="results-header">
+                            <div>
+                                Results Output
+                                <span id="resultsCount" class="results-count hidden">0</span>
+                            </div>
+                            <div id="batchTotalCost" class="total-cost hidden"></div>
+                        </div>
+                        <div id="resultsList" class="results-list">
+                            <div class="results-empty">Processed results will appear here...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        &copy; <span id="year"></span> API Demo Webapp.
+    </footer>
+
+    <script>
+        // ============================================
+        // Configuration
+        // ============================================
+        const MODELS = {
+            openai: [
+                { id: 'gpt-4o-mini', name: 'GPT-4o Mini' },
+                { id: 'gpt-5.2', name: 'GPT-5.2 (Pro Code)' },
+                { id: 'gpt-5-mini', name: 'GPT-5 Mini' },
+                { id: 'gpt-5', name: 'GPT-5' },
+                { id: 'gpt-4.1', name: 'GPT-4.1' },
+                { id: 'gpt-4-turbo', name: 'GPT-4 Turbo' },
+                { id: 'gpt-4o', name: 'GPT-4o' },
+            ],
+            gemini: [
+                { id: 'gemini-3-pro-preview', name: 'Gemini 3 Pro' },
+                { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash' },
+                { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
+                { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
+                { id: 'gemini-1.5-pro', name: 'Gemini 1.5 Pro' },
+            ]
+        };
+
+        const MODEL_PRICING = {
+            'gpt-4o': { input: 2.50, output: 10.00 },
+            'gpt-4o-mini': { input: 0.15, output: 0.60 },
+            'gpt-4-turbo': { input: 10.00, output: 30.00 },
+            'gpt-4.1': { input: 1.25, output: 10.00 },
+            'gpt-5': { input: 1.25, output: 10.00 },
+            'gpt-5-mini': { input: 0.25, output: 2.00 },
+            'gpt-5.2': { input: 1.75, output: 14.00 },
+            'gemini-1.5-pro': { input: 1.25, output: 5.00 },
+            'gemini-2.5-flash': { input: 0.30, output: 2.50 },
+            'gemini-2.5-pro': { input: 1.25, output: 10.00 },
+            'gemini-3-flash-preview': { input: 0.50, output: 3.00 },
+            'gemini-3-pro-preview': { input: 2.00, output: 12.00 },
+        };
+
+        // ============================================
+        // State
+        // ============================================
+        let state = {
+            provider: 'openai',
+            model: 'gpt-4o-mini',
+            openaiKey: localStorage.getItem('openai_api_key') || '',
+            geminiKey: localStorage.getItem('gemini_api_key') || '',
+            files: [],
+            batchResults: [],
+            batchTotalCost: 0
+        };
+
+        // ============================================
+        // DOM Elements
+        // ============================================
+        const providerSelect = document.getElementById('provider');
+        const modelSelect = document.getElementById('model');
+        const apiKeyInput = document.getElementById('apiKey');
+        const apiKeyLabel = document.getElementById('apiKeyLabel');
+        const singlePrompt = document.getElementById('singlePrompt');
+        const singleSubmit = document.getElementById('singleSubmit');
+        const singleError = document.getElementById('singleError');
+        const singleResponse = document.getElementById('singleResponse');
+        const singleResponseText = document.getElementById('singleResponseText');
+        const singleInputTokens = document.getElementById('singleInputTokens');
+        const singleOutputTokens = document.getElementById('singleOutputTokens');
+        const singleCost = document.getElementById('singleCost');
+        const batchPrompt = document.getElementById('batchPrompt');
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const browseLink = document.getElementById('browseLink');
+        const fileList = document.getElementById('fileList');
+        const fileListItems = document.getElementById('fileListItems');
+        const fileCount = document.getElementById('fileCount');
+        const batchSubmit = document.getElementById('batchSubmit');
+        const resultsList = document.getElementById('resultsList');
+        const resultsCount = document.getElementById('resultsCount');
+        const batchTotalCost = document.getElementById('batchTotalCost');
+
+        // ============================================
+        // Utility Functions
+        // ============================================
+        function calculateCost(modelId, inputTokens, outputTokens) {
+            const rates = MODEL_PRICING[modelId];
+            if (!rates) return null;
+            const inputCost = (inputTokens / 1_000_000) * rates.input;
+            const outputCost = (outputTokens / 1_000_000) * rates.output;
+            return inputCost + outputCost;
+        }
+
+        function formatCost(cost) {
+            if (cost === null || cost === undefined) return 'N/A';
+            if (cost === 0) return '$0.00';
+            return cost < 0.01 ? `$${cost.toFixed(6)}` : `$${cost.toFixed(4)}`;
+        }
+
+        function setLoading(button, loading, loadingText = 'Processing...') {
+            if (loading) {
+                button.disabled = true;
+                button.dataset.originalHtml = button.innerHTML;
+                button.innerHTML = `<span class="spinner"></span> ${loadingText}`;
+            } else {
+                button.disabled = false;
+                button.innerHTML = button.dataset.originalHtml;
+            }
+        }
+
+        // ============================================
+        // API Calls
+        // ============================================
+        async function callOpenAI(apiKey, model, prompt) {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [{ role: 'user', content: prompt }]
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || `API Error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return {
+                text: data.choices[0].message.content,
+                usage: {
+                    input: data.usage?.prompt_tokens || 0,
+                    output: data.usage?.completion_tokens || 0
+                }
+            };
+        }
+
+        async function callGemini(apiKey, model, prompt) {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error?.message || `API Error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            return {
+                text: data.candidates[0]?.content?.parts[0]?.text || '',
+                usage: {
+                    input: data.usageMetadata?.promptTokenCount || 0,
+                    output: data.usageMetadata?.candidatesTokenCount || 0
+                }
+            };
+        }
+
+        async function callLLM(provider, model, apiKey, prompt) {
+            if (!apiKey) {
+                throw new Error(`API Key is missing for ${provider}`);
+            }
+
+            if (provider === 'openai') {
+                return callOpenAI(apiKey, model, prompt);
+            } else if (provider === 'gemini') {
+                return callGemini(apiKey, model, prompt);
+            }
+
+            throw new Error('Unknown provider');
+        }
+
+        // ============================================
+        // UI Update Functions
+        // ============================================
+        function updateModelOptions() {
+            const models = MODELS[state.provider];
+            modelSelect.innerHTML = models.map(m => 
+                `<option value="${m.id}">${m.name}</option>`
+            ).join('');
+            
+            // Set default model
+            if (state.provider === 'gemini') {
+                state.model = 'gemini-2.5-flash';
+            } else {
+                state.model = models[0].id;
+            }
+            modelSelect.value = state.model;
+        }
+
+        function updateApiKeyField() {
+            const label = state.provider === 'openai' ? 'OpenAI' : 'Gemini';
+            apiKeyLabel.textContent = `${label} API Key`;
+            apiKeyInput.placeholder = `Enter your ${label} API Key`;
+            apiKeyInput.value = state.provider === 'openai' ? state.openaiKey : state.geminiKey;
+        }
+
+        function updateFileList() {
+            if (state.files.length === 0) {
+                fileList.classList.add('hidden');
+                return;
+            }
+
+            fileList.classList.remove('hidden');
+            fileCount.textContent = state.files.length;
+            fileListItems.innerHTML = state.files.map((file, idx) => `
+                <div class="file-item">
+                    <div class="file-item-name">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                        <span>${file.name}</span>
+                    </div>
+                    <button class="file-remove" data-index="${idx}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+
+            // Add remove handlers
+            fileListItems.querySelectorAll('.file-remove').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.dataset.index);
+                    state.files.splice(idx, 1);
+                    updateFileList();
+                });
+            });
+        }
+
+        function updateBatchResults() {
+            if (state.batchResults.length === 0) {
+                resultsList.innerHTML = '<div class="results-empty">Processed results will appear here...</div>';
+                resultsCount.classList.add('hidden');
+                batchTotalCost.classList.add('hidden');
+                return;
+            }
+
+            resultsCount.textContent = state.batchResults.length;
+            resultsCount.classList.remove('hidden');
+
+            if (state.batchTotalCost > 0) {
+                batchTotalCost.textContent = `Total Cost: ${formatCost(state.batchTotalCost)}`;
+                batchTotalCost.classList.remove('hidden');
+            }
+
+            resultsList.innerHTML = state.batchResults.map(res => `
+                <div class="result-item">
+                    <div class="result-header">
+                        <span class="result-filename">${res.fileName}</span>
+                        ${res.status === 'success' ? `
+                            <span class="result-status success">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                        ` : res.status === 'error' ? `
+                            <span class="result-status error">Error</span>
+                        ` : `
+                            <span class="spinner spinner-sm"></span>
+                        `}
+                    </div>
+                    <div class="result-response">${res.response || '...'}</div>
+                    ${res.cost !== undefined ? `
+                        <div class="result-cost">
+                            Ref: ${formatCost(res.cost)} (${res.usage?.input || 0} in / ${res.usage?.output || 0} out)
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // ============================================
+        // Event Handlers
+        // ============================================
+        function initEventHandlers() {
+            // Provider change
+            providerSelect.addEventListener('change', (e) => {
+                state.provider = e.target.value;
+                updateModelOptions();
+                updateApiKeyField();
+            });
+
+            // Model change
+            modelSelect.addEventListener('change', (e) => {
+                state.model = e.target.value;
+            });
+
+            // API Key change
+            apiKeyInput.addEventListener('input', (e) => {
+                if (state.provider === 'openai') {
+                    state.openaiKey = e.target.value;
+                    localStorage.setItem('openai_api_key', e.target.value);
+                } else {
+                    state.geminiKey = e.target.value;
+                    localStorage.setItem('gemini_api_key', e.target.value);
+                }
+            });
+
+            // Tab switching
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById(`${btn.dataset.tab}-tab`).classList.add('active');
+                });
+            });
+
+            // Single prompt submit
+            singleSubmit.addEventListener('click', handleSingleSubmit);
+
+            // File drop zone
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('drag-over');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+                const droppedFiles = Array.from(e.dataTransfer.files).filter(
+                    file => file.type === 'text/plain' || file.name.endsWith('.md') || file.name.endsWith('.txt')
+                );
+                state.files = [...state.files, ...droppedFiles];
+                updateFileList();
+            });
+
+            // Browse files
+            browseLink.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', () => {
+                const selectedFiles = Array.from(fileInput.files);
+                state.files = [...state.files, ...selectedFiles];
+                updateFileList();
+                fileInput.value = '';
+            });
+
+            // Batch submit
+            batchSubmit.addEventListener('click', handleBatchSubmit);
+        }
+
+        async function handleSingleSubmit() {
+            const prompt = singlePrompt.value.trim();
+            if (!prompt) return;
+
+            const apiKey = state.provider === 'openai' ? state.openaiKey : state.geminiKey;
+
+            singleError.classList.add('hidden');
+            singleResponse.classList.add('hidden');
+            setLoading(singleSubmit, true);
+
+            try {
+                const { text, usage } = await callLLM(state.provider, state.model, apiKey, prompt);
+                const cost = calculateCost(state.model, usage.input, usage.output);
+
+                singleResponseText.textContent = text;
+                singleInputTokens.textContent = `Input Tokens: ${usage.input}`;
+                singleOutputTokens.textContent = `Output Tokens: ${usage.output}`;
+                singleCost.textContent = `Estimated Cost: ${formatCost(cost)}`;
+                singleResponse.classList.remove('hidden');
+            } catch (err) {
+                singleError.textContent = err.message;
+                singleError.classList.remove('hidden');
+            } finally {
+                setLoading(singleSubmit, false);
+            }
+        }
+
+        async function handleBatchSubmit() {
+            const prompt = batchPrompt.value.trim();
+            if (!prompt || state.files.length === 0) return;
+
+            const apiKey = state.provider === 'openai' ? state.openaiKey : state.geminiKey;
+
+            state.batchResults = [];
+            state.batchTotalCost = 0;
+            updateBatchResults();
+            setLoading(batchSubmit, true, 'Processing Batch...');
+
+            for (let i = 0; i < state.files.length; i++) {
+                const file = state.files[i];
+                let resultItem = { fileName: file.name, status: 'pending', response: '' };
+                state.batchResults.push(resultItem);
+                updateBatchResults();
+
+                try {
+                    const text = await file.text();
+                    const fullPrompt = `${prompt}\n\n--- File: ${file.name} ---\n${text}`;
+                    const { text: responseText, usage } = await callLLM(state.provider, state.model, apiKey, fullPrompt);
+                    const cost = calculateCost(state.model, usage.input, usage.output);
+
+                    state.batchTotalCost += cost || 0;
+                    state.batchResults[i] = {
+                        fileName: file.name,
+                        status: 'success',
+                        response: responseText,
+                        usage,
+                        cost
+                    };
+                } catch (error) {
+                    state.batchResults[i] = {
+                        fileName: file.name,
+                        status: 'error',
+                        response: error.message
+                    };
+                }
+
+                updateBatchResults();
+            }
+
+            setLoading(batchSubmit, false);
+        }
+
+        // ============================================
+        // Initialize
+        // ============================================
+        document.getElementById('year').textContent = new Date().getFullYear();
+        updateModelOptions();
+        updateApiKeyField();
+        initEventHandlers();
+    </script>
+</body>
 </html>
