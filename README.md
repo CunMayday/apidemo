@@ -1,16 +1,41 @@
-# React + Vite
+# API Demo - OpenAI & Gemini Showcase
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple, single-page web application to test OpenAI and Google Gemini models.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Single Prompt Mode**: Enter a prompt and get a response from the selected model
+- **Batch Processing**: Drag and drop multiple text files to process them with a base prompt
+- **Multiple Providers**: Support for OpenAI and Google Gemini
+- **Cost Tracking**: Estimates token usage and cost for each request
+- **API Key Persistence**: Keys are saved in localStorage for convenience
 
-## React Compiler
+## Usage
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Open `index.html` in your browser (or visit the [GitHub Pages site](https://cunmayday.github.io/apidemo/))
+2. Select a provider (OpenAI or Gemini)
+3. Select a model
+4. Enter your API key
+5. Type a prompt and submit!
 
-## Expanding the ESLint configuration
+## Supported Models
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### OpenAI
+- GPT-4o Mini
+- GPT-5.2 (Pro Code)
+- GPT-5 Mini
+- GPT-5
+- GPT-4.1
+- GPT-4 Turbo
+- GPT-4o
+
+### Google Gemini
+- Gemini 3 Pro
+- Gemini 3 Flash
+- Gemini 2.5 Pro
+- Gemini 2.5 Flash
+- Gemini 1.5 Pro
+
+## No Build Required
+
+This is a single HTML file with no dependencies. Just open it in a browser or host it anywhere!
