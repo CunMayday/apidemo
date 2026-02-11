@@ -611,6 +611,7 @@
         <div class="tab-nav">
             <button class="tab-btn active" data-tab="single">Single Prompt</button>
             <button class="tab-btn" data-tab="batch">Batch Processing (File Drop)</button>
+            <button class="tab-btn" data-tab="multi">Multi-step Processing</button>
         </div>
 
         <!-- Tab Content -->
@@ -694,6 +695,62 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Multi-step Processing Tab -->
+            <div id="multi-tab" class="tab-pane">
+                <div class="batch-grid">
+                    <!-- Left Column: Inputs -->
+                    <div>
+                        <div class="form-group">
+                            <label for="multiFirstPrompt">First Step Prompt</label>
+                            <textarea id="multiFirstPrompt" class="prompt-input batch-prompt" placeholder="e.g. Extract key facts from this document..."></textarea>
+                        </div>
+
+                        <div class="form-group" style="margin-top: 1rem;">
+                            <label for="multiSecondPrompt">Second Step Prompt</label>
+                            <textarea id="multiSecondPrompt" class="prompt-input batch-prompt" placeholder="e.g. Convert the extracted facts into a concise action plan..."></textarea>
+                        </div>
+
+                        <!-- Drop Zone -->
+                        <div id="multiDropZone" class="drop-zone">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                            </svg>
+                            <p>Drag & Drop text files here</p>
+                            <p class="hint">(.txt or .md files supported)</p>
+                            <span class="browse-link" id="multiBrowseLink">or Browse Files</span>
+                        </div>
+                        <input type="file" id="multiFileInput" class="hidden" multiple accept=".txt,.md">
+
+                        <!-- File List -->
+                        <div id="multiFileList" class="file-list hidden">
+                            <div class="file-list-header">Selected Files (<span id="multiFileCount">0</span>)</div>
+                            <div id="multiFileListItems" class="file-list-items"></div>
+                        </div>
+
+                        <button id="multiSubmit" class="btn btn-gold" style="width: 100%; margin-top: 1rem;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M8 5v14l11-7z"/>
+                            </svg>
+                            Start Multi-step Processing
+                        </button>
+                    </div>
+
+                    <!-- Right Column: Results -->
+                    <div class="results-panel">
+                        <div class="results-header">
+                            <div>
+                                Multi-step Output
+                                <span id="multiResultsCount" class="results-count hidden">0</span>
+                            </div>
+                            <div id="multiTotalCost" class="total-cost hidden"></div>
+                        </div>
+                        <div id="multiResultsList" class="results-list">
+                            <div class="results-empty">Step outputs will appear here...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -750,7 +807,10 @@
             geminiKey: localStorage.getItem('gemini_api_key') || '',
             files: [],
             batchResults: [],
-            batchTotalCost: 0
+            batchTotalCost: 0,
+            multiFiles: [],
+            multiResults: [],
+            multiTotalCost: 0
         };
 
         // ============================================
@@ -779,6 +839,18 @@
         const resultsList = document.getElementById('resultsList');
         const resultsCount = document.getElementById('resultsCount');
         const batchTotalCost = document.getElementById('batchTotalCost');
+        const multiFirstPrompt = document.getElementById('multiFirstPrompt');
+        const multiSecondPrompt = document.getElementById('multiSecondPrompt');
+        const multiDropZone = document.getElementById('multiDropZone');
+        const multiFileInput = document.getElementById('multiFileInput');
+        const multiBrowseLink = document.getElementById('multiBrowseLink');
+        const multiFileList = document.getElementById('multiFileList');
+        const multiFileListItems = document.getElementById('multiFileListItems');
+        const multiFileCount = document.getElementById('multiFileCount');
+        const multiSubmit = document.getElementById('multiSubmit');
+        const multiResultsList = document.getElementById('multiResultsList');
+        const multiResultsCount = document.getElementById('multiResultsCount');
+        const multiTotalCost = document.getElementById('multiTotalCost');
 
         // ============================================
         // Utility Functions
@@ -952,6 +1024,8 @@
             if (state.batchTotalCost > 0) {
                 batchTotalCost.textContent = `Total Cost: ${formatCost(state.batchTotalCost)}`;
                 batchTotalCost.classList.remove('hidden');
+            } else {
+                batchTotalCost.classList.add('hidden');
             }
 
             resultsList.innerHTML = state.batchResults.map(res => `
@@ -974,6 +1048,93 @@
                     ${res.cost !== undefined ? `
                         <div class="result-cost">
                             Ref: ${formatCost(res.cost)} (${res.usage?.input || 0} in / ${res.usage?.output || 0} out)
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        function updateMultiFileList() {
+            if (state.multiFiles.length === 0) {
+                multiFileList.classList.add('hidden');
+                return;
+            }
+
+            multiFileList.classList.remove('hidden');
+            multiFileCount.textContent = state.multiFiles.length;
+            multiFileListItems.innerHTML = state.multiFiles.map((file, idx) => `
+                <div class="file-item">
+                    <div class="file-item-name">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                        <span>${file.name}</span>
+                    </div>
+                    <button class="file-remove" data-index="${idx}">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            `).join('');
+
+            multiFileListItems.querySelectorAll('.file-remove').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const idx = parseInt(btn.dataset.index);
+                    state.multiFiles.splice(idx, 1);
+                    updateMultiFileList();
+                });
+            });
+        }
+
+        function updateMultiResults() {
+            if (state.multiResults.length === 0) {
+                multiResultsList.innerHTML = '<div class="results-empty">Step outputs will appear here...</div>';
+                multiResultsCount.classList.add('hidden');
+                multiTotalCost.classList.add('hidden');
+                return;
+            }
+
+            multiResultsCount.textContent = state.multiResults.length;
+            multiResultsCount.classList.remove('hidden');
+
+            if (state.multiTotalCost > 0) {
+                multiTotalCost.textContent = `Total Cost: ${formatCost(state.multiTotalCost)}`;
+                multiTotalCost.classList.remove('hidden');
+            } else {
+                multiTotalCost.classList.add('hidden');
+            }
+
+            multiResultsList.innerHTML = state.multiResults.map(res => `
+                <div class="result-item">
+                    <div class="result-header">
+                        <span class="result-filename">${res.fileName}</span>
+                        ${res.status === 'success' ? `
+                            <span class="result-status success">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                        ` : res.status === 'error' ? `
+                            <span class="result-status error">Error</span>
+                        ` : `
+                            <span class="spinner spinner-sm"></span>
+                        `}
+                    </div>
+                    ${!res.step2 ? `
+                        <div class="result-response">${res.response || '...'}</div>
+                    ` : ''}
+                    ${res.step1 ? `
+                        <div class="result-cost">Step 1 Output:</div>
+                        <div class="result-response">${res.step1}</div>
+                    ` : ''}
+                    ${res.step2 ? `
+                        <div class="result-cost">Step 2 Output:</div>
+                        <div class="result-response">${res.step2}</div>
+                    ` : ''}
+                    ${res.totalUsage ? `
+                        <div class="result-cost">
+                            Ref: ${formatCost(res.totalCost)} (${res.totalUsage.input || 0} in / ${res.totalUsage.output || 0} out)
                         </div>
                     ` : ''}
                 </div>
@@ -1051,6 +1212,38 @@
 
             // Batch submit
             batchSubmit.addEventListener('click', handleBatchSubmit);
+
+            // Multi-step file drop zone
+            multiDropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                multiDropZone.classList.add('drag-over');
+            });
+
+            multiDropZone.addEventListener('dragleave', () => {
+                multiDropZone.classList.remove('drag-over');
+            });
+
+            multiDropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                multiDropZone.classList.remove('drag-over');
+                const droppedFiles = Array.from(e.dataTransfer.files).filter(
+                    file => file.type === 'text/plain' || file.name.endsWith('.md') || file.name.endsWith('.txt')
+                );
+                state.multiFiles = [...state.multiFiles, ...droppedFiles];
+                updateMultiFileList();
+            });
+
+            // Multi-step browse files
+            multiBrowseLink.addEventListener('click', () => multiFileInput.click());
+            multiFileInput.addEventListener('change', () => {
+                const selectedFiles = Array.from(multiFileInput.files);
+                state.multiFiles = [...state.multiFiles, ...selectedFiles];
+                updateMultiFileList();
+                multiFileInput.value = '';
+            });
+
+            // Multi-step submit
+            multiSubmit.addEventListener('click', handleMultiSubmit);
         }
 
         async function handleSingleSubmit() {
@@ -1123,6 +1316,63 @@
             }
 
             setLoading(batchSubmit, false);
+        }
+
+        async function handleMultiSubmit() {
+            const firstStepPrompt = multiFirstPrompt.value.trim();
+            const secondStepPrompt = multiSecondPrompt.value.trim();
+            if (!firstStepPrompt || !secondStepPrompt || state.multiFiles.length === 0) return;
+
+            const apiKey = state.provider === 'openai' ? state.openaiKey : state.geminiKey;
+
+            state.multiResults = [];
+            state.multiTotalCost = 0;
+            updateMultiResults();
+            setLoading(multiSubmit, true, 'Running Multi-step...');
+
+            for (let i = 0; i < state.multiFiles.length; i++) {
+                const file = state.multiFiles[i];
+                state.multiResults.push({ fileName: file.name, status: 'pending', response: '' });
+                updateMultiResults();
+
+                try {
+                    const text = await file.text();
+                    const step1Prompt = `${firstStepPrompt}\n\n--- File: ${file.name} ---\n${text}`;
+                    const step1 = await callLLM(state.provider, state.model, apiKey, step1Prompt);
+                    const step1Cost = calculateCost(state.model, step1.usage.input, step1.usage.output) || 0;
+
+                    const step2Prompt = `${secondStepPrompt}\n\n--- Step 1 Output for File: ${file.name} ---\n${step1.text}`;
+                    const step2 = await callLLM(state.provider, state.model, apiKey, step2Prompt);
+                    const step2Cost = calculateCost(state.model, step2.usage.input, step2.usage.output) || 0;
+
+                    const totalUsage = {
+                        input: (step1.usage.input || 0) + (step2.usage.input || 0),
+                        output: (step1.usage.output || 0) + (step2.usage.output || 0)
+                    };
+                    const totalCost = step1Cost + step2Cost;
+                    state.multiTotalCost += totalCost;
+
+                    state.multiResults[i] = {
+                        fileName: file.name,
+                        status: 'success',
+                        response: step2.text,
+                        step1: step1.text,
+                        step2: step2.text,
+                        totalUsage,
+                        totalCost
+                    };
+                } catch (error) {
+                    state.multiResults[i] = {
+                        fileName: file.name,
+                        status: 'error',
+                        response: error.message
+                    };
+                }
+
+                updateMultiResults();
+            }
+
+            setLoading(multiSubmit, false);
         }
 
         // ============================================
