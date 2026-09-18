@@ -21,20 +21,18 @@ A simple, single-page web application to test OpenAI, Google Gemini, and Purdue 
 ## Supported Models
 
 ### OpenAI
-- GPT-4o Mini
-- GPT-5.2 (Pro Code)
-- GPT-5 Mini
-- GPT-5
-- GPT-4.1
-- GPT-4 Turbo
-- GPT-4o
+- GPT-6 Astra
+- GPT-5.6 Sol
+- GPT-5.6 Terra
+- GPT-5.6 Luna
 
 ### Google Gemini
-- Gemini 3 Pro
-- Gemini 3 Flash
+- Gemini 3.1 Pro (Preview)
+- Gemini 3.8 Flash
+- Gemini 3.5 Flash-Lite
 - Gemini 2.5 Pro
 - Gemini 2.5 Flash
-- Gemini 1.5 Pro
+- Gemini 2.5 Flash-Lite
 
 ### Purdue GenAI Studio
 
