@@ -27,12 +27,20 @@ A simple, single-page web application to test OpenAI, Google Gemini, and Purdue 
 - GPT-5.6 Luna
 
 ### Google Gemini
+- Gemini 4 Argon (paid tier)
 - Gemini 3.1 Pro (Preview)
 - Gemini 3.8 Flash
+- Gemini 3.6 Flash
 - Gemini 3.5 Flash-Lite
-- Gemini 2.5 Pro
-- Gemini 2.5 Flash
-- Gemini 2.5 Flash-Lite
+- Gemini 3.1 Flash-Lite
+- Gemini 3 Flash (Preview)
+- Gemini 2.5 Pro (existing users)
+- Gemini 2.5 Flash (existing users)
+- Gemini 2.5 Flash-Lite (existing users)
+
+Verified against Google's [model catalog](https://ai.google.dev/gemini-api/docs/models), [deprecation schedule](https://ai.google.dev/gemini-api/docs/deprecations), and [pricing](https://ai.google.dev/gemini-api/docs/pricing) on October 28, 2026. Gemini 3.8 Flash is the default. The list covers general text generation; Live, image, video, speech, and embedding models require different workflows. Gemini 2.5 access is limited to users who previously used those models; availability also depends on your API project and tier.
+
+Cost estimates use standard paid text rates, including thinking tokens. Published price increases apply automatically for Argon on December 1, 2026, and for 3.8/3.6 Flash on January 1, 2027. Free-tier requests may cost less.
 
 ### Purdue GenAI Studio
 

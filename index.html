@@ -772,12 +772,16 @@
                 { id: 'gpt-5.6-luna', name: 'GPT-5.6 Luna' },
             ],
             gemini: [
+                { id: 'gemini-4-argon', name: 'Gemini 4 Argon (Paid)' },
                 { id: 'gemini-3.1-pro-preview', name: 'Gemini 3.1 Pro (Preview)' },
                 { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash' },
+                { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash' },
                 { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash-Lite' },
-                { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro' },
-                { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash' },
-                { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite' },
+                { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash-Lite' },
+                { id: 'gemini-3-flash-preview', name: 'Gemini 3 Flash (Preview)' },
+                { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro (Existing Users)' },
+                { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash (Existing Users)' },
+                { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash-Lite (Existing Users)' },
             ],
             purdue: [
                 { id: 'gpt-oss:120b', name: 'GPT-OSS 120B' },
@@ -801,9 +805,14 @@
             'gpt-5.6-sol': { input: 4.00, output: 20.00 },
             'gpt-5.6-terra': { input: 2.00, output: 12.00 },
             'gpt-5.6-luna': { input: 0.20, output: 1.20 },
+            // Standard paid text rates: https://ai.google.dev/gemini-api/docs/pricing (2026-10-28).
+            'gemini-4-argon': { input: 2.00, output: 10.00, scheduled: { from: '2026-12-01T00:00:00Z', input: 4.00, output: 20.00 } },
             'gemini-3.1-pro-preview': { input: 2.00, output: 12.00, highInput: 4.00, highOutput: 18.00, threshold: 200_000 },
-            'gemini-3.8-flash': { input: 0.75, output: 3.75 },
+            'gemini-3.8-flash': { input: 0.75, output: 3.75, scheduled: { from: '2027-01-01T00:00:00Z', input: 1.50, output: 7.50 } },
+            'gemini-3.6-flash': { input: 0.75, output: 3.75, scheduled: { from: '2027-01-01T00:00:00Z', input: 1.50, output: 7.50 } },
             'gemini-3.5-flash-lite': { input: 0.30, output: 2.50 },
+            'gemini-3.1-flash-lite': { input: 0.25, output: 1.50 },
+            'gemini-3-flash-preview': { input: 0.50, output: 3.00 },
             'gemini-2.5-pro': { input: 1.25, output: 10.00, highInput: 2.50, highOutput: 15.00, threshold: 200_000 },
             'gemini-2.5-flash': { input: 0.30, output: 2.50 },
             'gemini-2.5-flash-lite': { input: 0.10, output: 0.40 },
@@ -869,8 +878,11 @@
         // Utility Functions
         // ============================================
         function calculateCost(modelId, inputTokens, outputTokens) {
-            const rates = MODEL_PRICING[modelId];
+            let rates = MODEL_PRICING[modelId];
             if (!rates) return null;
+            if (rates.scheduled && Date.now() >= Date.parse(rates.scheduled.from)) {
+                rates = { ...rates, ...rates.scheduled };
+            }
             const useHighContextRates = rates.threshold && inputTokens > rates.threshold;
             const inputRate = useHighContextRates ? rates.highInput : rates.input;
             const outputRate = useHighContextRates ? rates.highOutput : rates.output;
